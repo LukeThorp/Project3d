@@ -5,19 +5,22 @@ package engineTester;
 
 import org.lwjgl.opengl.Display;
 
+import Shaders.StaticShader;
+import models.RawModel;
+import models.TexturedModel;
 import renderEngine.DisplayManager;
 import renderEngine.Loader;
-import renderEngine.RawModel;
 import renderEngine.Renderer;
+import textures.ModelTexture;
 
 public class MainGameLoop {
 	
 	public static void main(String[] args) {
 
 		DisplayManager.createDisplay();
-		
 		Loader loader = new Loader();
 		Renderer renderer = new Renderer();
+		StaticShader shader = new StaticShader();
 		
 		float[] vertices = {
 
@@ -33,17 +36,28 @@ public class MainGameLoop {
 				3,1,2 //Bottom right triangle (v3, v1, v2)
 		};
 		
-		RawModel model = loader.loadToVAO(vertices, indices);
+		float[] textureCoords = {
+				0,0, //v0
+				0,1, //v1
+				1,1, //v2
+				1,0  //v3
+		};
 		
+		RawModel model = loader.loadToVAO(vertices,textureCoords,indices);
+		ModelTexture texture = new ModelTexture(loader.loadTexture("Ok-icon"));
+		TexturedModel texturedModel = new TexturedModel(model, texture);
+				
 		while(!Display.isCloseRequested()) {
 			renderer.prepare();
-
-			// game logic
-			renderer.render(model);
+			shader.start();
+			renderer.render(texturedModel);
+			shader.stop();
 			DisplayManager.updateDisplay();
 			
 		}
 		
+		shader.cleanUp();
+		loader.cleanUp();
 		DisplayManager.closeDisplay();
 	
 	}
